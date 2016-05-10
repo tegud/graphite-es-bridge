@@ -8,7 +8,7 @@ const port = 12003;
 function parseMetricKey(key) {
     const keyParts = key.split('.');
 
-    if(splitKey.length !== 5) {
+    if(keyParts.length !== 5) {
         return;
     }
 
