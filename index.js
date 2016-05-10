@@ -80,7 +80,7 @@ net.createServer(socket => {
                 return console.log(`Couldn't understand key: "${components[0]}"`)
             }
 
-            const adjustedTime = parseInt(adjustedTime, 10) * 1000;
+            const adjustedTime = parseInt(components[2], 10) * 1000;
 
             console.log(adjustedTime);
 
