@@ -9,7 +9,7 @@ function parseMetricKey(key) {
     const keyParts = key.split('.');
 
     if(keyParts.length !== 5) {
-        return {};
+        return;
     }
 
     return {
