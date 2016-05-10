@@ -9,7 +9,7 @@ function parseMetricKey(key) {
     const keyParts = key.split('.');
 
     if(keyParts.length !== 5) {
-        return;
+        return {};
     }
 
     return {
@@ -70,7 +70,7 @@ net.createServer(socket => {
         const key = parseMetricKey(components[0]);
 
         if(!key) {
-            return console.log(`Couldn't understand key: "${key}"`)
+            return console.log(`Couldn't understand key: "${components[0]}"`)
         }
 
         const metric = _.merge({
