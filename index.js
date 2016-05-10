@@ -80,12 +80,12 @@ net.createServer(socket => {
                 return console.log(`Couldn't understand key: "${components[0]}"`)
             }
 
-            const adjustedTime = components[2] + '000';
+            const adjustedTime = parseInt(adjustedTime, 10) * 1000;
 
-            console.log('TIME: ' + adjustedTime);
+            console.log(adjustedTime);
 
             const metric = _.merge({
-                '@timestamp': moment(parseInt(adjustedTime, 10)).format(),
+                '@timestamp': moment(adjustedTime).format(),
                 value: components[1]
             }, key);
             console.log(metric)
