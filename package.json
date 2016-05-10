@@ -1,0 +1,24 @@
+{
+  "name": "graphite-es-bridge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tegud/graphite-es-bridge.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tegud/graphite-es-bridge/issues"
+  },
+  "homepage": "https://github.com/tegud/graphite-es-bridge#readme",
+  "dependencies": {
+    "elasticsearch": "^11.0.1",
+    "lodash": "^4.12.0",
+    "moment": "^2.13.0"
+  }
+}
