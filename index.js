@@ -67,9 +67,9 @@ net.createServer(socket => {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
             buffer = buffer.substring(lineEnd + 1);
+            console.log(metricLine);
             const components = metricLine.split(' ');
 
-            // Can just keep appending until we reach new line
             if(components.length < 3) {
                 return console.log(`Split metric line: ${metricLine}`);
             }
