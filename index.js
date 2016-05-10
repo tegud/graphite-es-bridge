@@ -82,7 +82,7 @@ net.createServer(socket => {
 
             const adjustedTime = components[2] + '000';
             const metric = _.merge({
-                '@timestamp': moment(adjustedTime, 10)).format(),
+                '@timestamp': moment(parseInt(adjustedTime, 10)).format(),
                 value: components[1]
             }, key);
             console.log(metric)
