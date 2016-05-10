@@ -84,6 +84,7 @@ net.createServer(socket => {
                 '@timestamp': moment(parseInt(`${components[2]}000`, 10)).format(),
                 value: components[1]
             }, key);
+            console.log(`TIME: ${components[2]}000`);
             console.log(metric)
 
             // metricBuffer.push(metric);
