@@ -67,7 +67,7 @@ net.createServer(socket => {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
             buffer = buffer.substring(lineEnd + 1);
-            console.log(metricLine);
+
             const components = metricLine.split(' ');
 
             if(components.length < 3) {
@@ -80,12 +80,13 @@ net.createServer(socket => {
                 return console.log(`Couldn't understand key: "${components[0]}"`)
             }
 
+            console.log(`Metric line timestamp is: ${components[2]}`)
+
             const metric = _.merge({
                 '@timestamp': moment(components[2]).format(),
                 value: components[1]
             }, key);
 
-            console.log(metric);
             // metricBuffer.push(metric);
         }
     });
