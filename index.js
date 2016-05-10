@@ -58,27 +58,36 @@ const metricBuffer = new MetricBuffer({
 });
 
 net.createServer(socket => {
+    var buffer = "";
     socket.on('data', data => {
-        const metricLine = data.toString('utf8');
-        const components = metricLine.split(' ');
+        const metricLines = data.toString('utf8');
 
-        // Can just keep appending until we reach new line
-        if(components.length < 3) {
-            return console.log(`Split metric line: ${metricLine}`);
+        buffer += metricLines;
+        while (buffer.indexOf('\n') > -1) {
+            var lineEnd = buffer.indexOf('\n');
+            var metricLine = buffer.substring(0, lineEnd);
+            buffer = buffer.substring(lineEnd + 1);
+            const components = metricLine.split(' ');
+
+            // Can just keep appending until we reach new line
+            if(components.length < 3) {
+                return console.log(`Split metric line: ${metricLine}`);
+            }
+
+            const key = parseMetricKey(components[0]);
+
+            if(!key) {
+                return console.log(`Couldn't understand key: "${components[0]}"`)
+            }
+
+            const metric = _.merge({
+                '@timestamp': moment(components[2]).format(),
+                value: components[1]
+            }, key);
+
+            console.log(metric);
+            // metricBuffer.push(metric);
         }
-
-        const key = parseMetricKey(components[0]);
-
-        if(!key) {
-            return console.log(`Couldn't understand key: "${components[0]}"`)
-        }
-
-        const metric = _.merge({
-            '@timestamp': moment(components[2]).format(),
-            value: components[1]
-        }, key);
-
-        metricBuffer.push(metric);
     });
 }).listen(port);
 
