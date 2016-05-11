@@ -43,9 +43,27 @@ const metricBuffer = new MetricBuffer({
 });
 
 var esNodeRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.node\.(\w+_[^_]+_\w+)\.(.+)$/;
+var esIndexRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.index\.(\w+)\.(.+)$/;
 
 function parseElasticsearchMetricKey(key) {
-	
+	var nodeMatch = esNodeRegex.exec(key)
+	if (nodeMatch) {
+		return {
+            class: "elasticsearch",
+            cluster: nodeMatch[1],
+            node: nodeMatch[2],
+            metric: nodeMatch[3]
+		}
+	}
+	var indexMatch = esIndexRegex.exec(key)
+	if (indexMatch) {
+		return {
+            class: "elasticsearch",
+            cluster: indexMatch[1],
+            index: indexMatch[2],
+            metric: indexMatch[3]
+		}
+	}
 	return;
 }
 
@@ -57,10 +75,8 @@ function parseMetricKey(key) {
     const lowerCasedkey = key.toLowerCase();
     const keyParts = key.split('.');
     if (lowerCasedkey.indexOf('elasticsearch') > -1) {
-        console.log(`elasticsearch MATCH: ${key}`)
         return parseElasticsearchMetricKey(key, keyParts);
     } else if (lowerCasedkey.indexOf('kafka') > -1) {
-        console.log(`kafka MATCH: ${key}`)
         return parseKafkaMetricKey(key, keyParts);
     } else if (keyParts.length == 5) {
         return {
