@@ -53,6 +53,17 @@ function MetricBuffer(config) {
     };
 };
 
+function convertToMilliSeconds(timestampInSeconds) {
+    return timestampInSeconds * 1000;
+}
+
+function lookForKeywords(stringToCheck) {
+    const lowerCasedString = stringToCheck.toLowerCase();
+    if(lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
+        console.log(`KEYWORD MATCH: ${stringToCheck}`)
+    }
+}
+
 const metricBuffer = new MetricBuffer({
     elasticsearch: { host: '10.44.72.61:9200' }
 });
@@ -63,6 +74,9 @@ net.createServer(socket => {
         const metricLines = data.toString('utf8');
 
         buffer += metricLines;
+
+        lookForKeywords(buffer);
+
         while (buffer.indexOf('\n') > -1) {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
@@ -80,7 +94,7 @@ net.createServer(socket => {
                 return console.log(`Couldn't understand key: "${components[0]}"`)
             }
 
-            const adjustedTime = parseInt(components[2], 10) * 1000;
+            const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
 
             const metric = _.merge({
                 '@timestamp': moment(adjustedTime).format(),
