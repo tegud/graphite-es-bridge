@@ -60,7 +60,7 @@ function convertToMilliSeconds(timestampInSeconds) {
 function lookForKeywords(stringToCheck) {
     const lowerCasedString = stringToCheck.toLowerCase();
     if(lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
-        //console.log(`KEYWORD MATCH: ${stringToCheck}`)
+        console.log(`KEYWORD MATCH: ${stringToCheck}`)
     }
 }
 
@@ -72,7 +72,6 @@ net.createServer(socket => {
     var buffer = "";
     socket.on('data', data => {
         const metricLines = data.toString('utf8');
-        console.log(metricLines);
 
         buffer += metricLines;
 
@@ -80,6 +79,7 @@ net.createServer(socket => {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
             buffer = buffer.substring(lineEnd + 1);
+            console.log(metricLine);
 
             lookForKeywords(metricLine);
 
