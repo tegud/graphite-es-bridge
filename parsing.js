@@ -49,7 +49,7 @@ function parseElasticsearchMetricKey(key) {
 	return;
 }
 
-function parseElasticsearchMetricKey(key) {
+function parseKafkaMetricKey(key) {
 	return;
 }
 
@@ -58,10 +58,10 @@ function parseMetricKey(key) {
     const keyParts = key.split('.');
     if (lowerCasedkey.indexOf('elasticsearch') > -1) {
         console.log(`elasticsearch MATCH: ${key}`)
-        return parseElasticsearchMetricKey(key, keyParts)
+        return parseElasticsearchMetricKey(key, keyParts);
     } else if (lowerCasedkey.indexOf('kafka') > -1) {
         console.log(`kafka MATCH: ${key}`)
-        return;
+        return parseKafkaMetricKey(key, keyParts);
     } else if (keyParts.length == 5) {
         return {
             class: keyParts[0],
