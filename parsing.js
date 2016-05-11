@@ -46,29 +46,29 @@ var esNodeRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.node\.(\w+_[^_]+_\w+)\.
 var esIndexRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.index\.(\w+)\.(.+)$/;
 
 function parseElasticsearchMetricKey(key) {
-	var nodeMatch = esNodeRegex.exec(key)
-	if (nodeMatch) {
-		return {
+    var nodeMatch = esNodeRegex.exec(key)
+    if (nodeMatch) {
+        return {
             class: "elasticsearch",
             cluster: nodeMatch[1],
             node: nodeMatch[2],
             metric: nodeMatch[3]
-		}
-	}
-	var indexMatch = esIndexRegex.exec(key)
-	if (indexMatch) {
-		return {
+        }
+    }
+    var indexMatch = esIndexRegex.exec(key)
+    if (indexMatch) {
+        return {
             class: "elasticsearch",
             cluster: indexMatch[1],
             index: indexMatch[2],
             metric: indexMatch[3]
-		}
-	}
-	return;
+        }
+    }
+    return;
 }
 
 function parseKafkaMetricKey(key) {
-	return;
+    return;
 }
 
 function parseMetricKey(key) {
@@ -113,29 +113,27 @@ function parseMetricLine(metricLine) {
 var buffer = "";
 
 function processNewDataPacket(data) {
-    try {
-        const metricLines = data.toString('utf8');
+    const metricLines = data.toString('utf8');
 
-        buffer += metricLines;
+    buffer += metricLines;
 
-        while (buffer.indexOf('\n') > -1) {
-            var lineEnd = buffer.indexOf('\n');
-            var metricLine = buffer.substring(0, lineEnd);
-            buffer = buffer.substring(lineEnd + 1);
+    while (buffer.indexOf('\n') > -1) {
+        var lineEnd = buffer.indexOf('\n');
+        var metricLine = buffer.substring(0, lineEnd);
+        buffer = buffer.substring(lineEnd + 1);
 
+        try {
             var metric = parseMetricLine(metricLine);
-
-            if (!metric) {
-                console.log(`Couldn't understand metric: "${metricLine}"`);
-                continue;
-            }
-
-            //console.log(metric);
-
-            // metricBuffer.push(metric);
+        } catch (e) {
+            console.log(e);
         }
-    } catch (e) {
-        console.log(e);
+        if (!metric) {
+            console.log(`Couldn't understand metric: "${metricLine}"`);
+            continue;
+        }
+
+        // console.log(metric);
+        // metricBuffer.push(metric);
     }
 }
 
