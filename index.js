@@ -71,8 +71,8 @@ const metricBuffer = new MetricBuffer({
 net.createServer(socket => {
     var buffer = "";
     socket.on('data', data => {
-        console.log(data);
         const metricLines = data.toString('utf8');
+        console.log(metricLines);
 
         buffer += metricLines;
 
