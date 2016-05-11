@@ -86,7 +86,6 @@ net.createServer(socket => {
                 '@timestamp': moment(adjustedTime).format(),
                 value: components[1]
             }, key);
-            console.log(metric)
 
             // metricBuffer.push(metric);
         }
