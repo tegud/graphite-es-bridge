@@ -1,14 +1,9 @@
 const moment = require('moment');
-const MetricBuffer = require('./MetricBuffer')
 const _ = require('lodash');
 
 function convertToMilliSeconds(timestampInSeconds) {
     return timestampInSeconds * 1000;
 }
-
-const metricBuffer = new MetricBuffer({
-    elasticsearch: { host: '10.44.72.61:9200' }
-});
 
 var esNodeRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.node\.(\w+_[^_]+_\w+)\.(.+)$/;
 var esIndexRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.index\.(\w+)\.(.+)$/;
@@ -80,7 +75,7 @@ function parseMetricLine(metricLine) {
 
 var buffer = "";
 
-function processNewDataPacket(data) {
+function processNewDataPacket(data, callback) {
     const metricLines = data.toString('utf8');
 
     buffer += metricLines;
@@ -100,8 +95,7 @@ function processNewDataPacket(data) {
             continue;
         }
 
-        // console.log(metric);
-        // metricBuffer.push(metric);
+        callback(metric);
     }
 }
 

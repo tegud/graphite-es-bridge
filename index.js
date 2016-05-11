@@ -1,10 +1,16 @@
 const net = require('net');
+const MetricBuffer = require('./MetricBuffer')
 const parsing = require('./parsing');
 
 const port = 12003;
 
+const metricBuffer = new MetricBuffer({
+    elasticsearch: { host: '10.44.72.61:9200' }
+});
+
 net.createServer(socket => {
-    socket.on('data', parsing.processNewDataPacket)
+    //socket.on('data', data => parsing.processNewDataPacket(data, metricData => metricBuffer.push(metricData)));
+    socket.on('data', data => parsing.processNewDataPacket(data, metricData => console.log(metricData)));
 }).listen(port);
 
 console.log(`Listening on port ${port}`);
