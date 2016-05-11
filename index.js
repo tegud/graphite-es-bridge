@@ -4,7 +4,6 @@ const parsing = require('./parsing');
 const port = 12003;
 
 net.createServer(socket => {
-    var buffer = "";
     socket.on('data', data => {
         parsing.processNewDataPacket(data);
     });

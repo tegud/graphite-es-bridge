@@ -5,7 +5,7 @@ const _ = require('lodash');
 function parseMetricKey(key) {
     const keyParts = key.split('.');
 
-    if(keyParts.length !== 5) {
+    if (keyParts.length !== 5) {
         return;
     }
 
@@ -27,18 +27,18 @@ function MetricBuffer(config) {
     setTimeout(() => {
         const metricCount = metrics.length;
 
-        if(!metricCount) {
+        if (!metricCount) {
             return console.log('No metrics to log.');
         }
 
         client.bulk({
-            body: metrics.reduce((bulkData, metric) => {
-                bulkData.push({ index: { _index: 'metrics-2016.05', _type: 'metric' } });
-                bulkData.push(metric);
+                body: metrics.reduce((bulkData, metric) => {
+                    bulkData.push({ index: { _index: 'metrics-2016.05', _type: 'metric' } });
+                    bulkData.push(metric);
 
-                return bulkData;
-            }, [])
-        })
+                    return bulkData;
+                }, [])
+            })
             .then(() => console.log(`${metricCount} metrics logged to ES`))
             .catch(err => console.log(`Error storing to es: ${err}`));
 
@@ -56,7 +56,7 @@ function convertToMilliSeconds(timestampInSeconds) {
 
 function lookForKeywords(stringToCheck) {
     const lowerCasedString = stringToCheck.toLowerCase();
-    if(lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
+    if (lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
         console.log(`KEYWORD MATCH: ${stringToCheck}`)
     }
 }
@@ -65,41 +65,51 @@ const metricBuffer = new MetricBuffer({
     elasticsearch: { host: '10.44.72.61:9200' }
 });
 
+var buffer = "";
+
 function processNewDataPacket(data) {
-    const metricLines = data.toString('utf8');
+    try {
+        const metricLines = data.toString('utf8');
 
-    buffer += metricLines;
+        buffer += metricLines;
 
-    while (buffer.indexOf('\n') > -1) {
-        var lineEnd = buffer.indexOf('\n');
-        var metricLine = buffer.substring(0, lineEnd);
-        buffer = buffer.substring(lineEnd + 1);
+        while (buffer.indexOf('\n') > -1) {
+            var lineEnd = buffer.indexOf('\n');
+            var metricLine = buffer.substring(0, lineEnd);
 
-        lookForKeywords(metricLine);
+            buffer = buffer.substring(lineEnd + 1);
 
-        const components = metricLine.split(' ');
 
-        if (components.length < 3) {
-            return console.log(`Split metric line: ${metricLine}`);
+            lookForKeywords(metricLine);
+
+            const components = metricLine.split(' ');
+
+            if (components.length < 3) {
+                console.log(`Split metric line: ${metricLine}`);
+                continue;
+            }
+
+            const key = parseMetricKey(components[0]);
+
+            if (!key) {
+            	console.log(`Couldn't understand key: "${components[0]}"`);
+                continue;
+            }
+
+            const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
+
+            const metric = _.merge({
+                '@timestamp': moment(adjustedTime).format(),
+                value: components[1]
+            }, key);
+
+            // metricBuffer.push(metric);
         }
-
-        const key = parseMetricKey(components[0]);
-
-        if (!key) {
-            return console.log(`Couldn't understand key: "${components[0]}"`)
-        }
-
-        const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
-
-        const metric = _.merge({
-            '@timestamp': moment(adjustedTime).format(),
-            value: components[1]
-        }, key);
-
-        // metricBuffer.push(metric);
+    } catch (e) {
+        console.log(e);
     }
 }
 
-exports.module = {
+module.exports = {
     processNewDataPacket: processNewDataPacket
 }
