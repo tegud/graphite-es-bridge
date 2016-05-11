@@ -75,12 +75,12 @@ net.createServer(socket => {
 
         buffer += metricLines;
 
-        lookForKeywords(buffer);
-
         while (buffer.indexOf('\n') > -1) {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
             buffer = buffer.substring(lineEnd + 1);
+
+            lookForKeywords(metricLine);
 
             const components = metricLine.split(' ');
 
