@@ -30,8 +30,18 @@ function parseElasticsearchMetricKey(key) {
     return;
 }
 
+var kafkaRegex = /^stats\.gauges\.(\w+)\.topic\.lag\.(\w+)\.acquisitions_(?:live_)?(\w+)$/;
+
 function parseKafkaMetricKey(key) {
-    return;
+    var match = kafkaRegex.exec(key);
+    if(match) {
+        return {
+            class: "kafka-topic-lag",
+            environment: match[1],
+            application: match[2],
+            topic: match[3]
+        }
+    }
 }
 
 function parseMetricKey(key) {
