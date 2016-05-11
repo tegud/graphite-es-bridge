@@ -2,22 +2,6 @@ const moment = require('moment');
 const elasticsearch = require('elasticsearch');
 const _ = require('lodash');
 
-function parseMetricKey(key) {
-    const keyParts = key.split('.');
-
-    if (keyParts.length !== 5) {
-        return;
-    }
-
-    return {
-        class: keyParts[0],
-        host: keyParts[1],
-        group: keyParts[2],
-        service: keyParts[3],
-        metric: keyParts[4]
-    };
-}
-
 function MetricBuffer(config) {
     let metrics = [];
     const client = new elasticsearch.Client({
@@ -54,16 +38,42 @@ function convertToMilliSeconds(timestampInSeconds) {
     return timestampInSeconds * 1000;
 }
 
-function lookForKeywords(stringToCheck) {
-    const lowerCasedString = stringToCheck.toLowerCase();
-    if (lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
-        console.log(`KEYWORD MATCH: ${stringToCheck}`)
-    }
-}
-
 const metricBuffer = new MetricBuffer({
     elasticsearch: { host: '10.44.72.61:9200' }
 });
+
+var esNodeRegex = /^stats\.gauges\.elasticsearch\.(\w+)\.node\.(\w+_[^_]+_\w+)\.(.+)$/;
+
+function parseElasticsearchMetricKey(key) {
+	
+	return;
+}
+
+function parseElasticsearchMetricKey(key) {
+	return;
+}
+
+function parseMetricKey(key) {
+    const lowerCasedkey = key.toLowerCase();
+    const keyParts = key.split('.');
+    if (lowerCasedkey.indexOf('elasticsearch') > -1) {
+        console.log(`elasticsearch MATCH: ${key}`)
+        return parseElasticsearchMetricKey(key, keyParts)
+    } else if (lowerCasedkey.indexOf('kafka') > -1) {
+        console.log(`kafka MATCH: ${key}`)
+        return;
+    } else if (keyParts.length == 5) {
+        return {
+            class: keyParts[0],
+            host: keyParts[1],
+            group: keyParts[2],
+            service: keyParts[3],
+            metric: keyParts[4]
+        };
+    }
+
+    return;
+}
 
 var buffer = "";
 
@@ -76,11 +86,7 @@ function processNewDataPacket(data) {
         while (buffer.indexOf('\n') > -1) {
             var lineEnd = buffer.indexOf('\n');
             var metricLine = buffer.substring(0, lineEnd);
-
             buffer = buffer.substring(lineEnd + 1);
-
-
-            lookForKeywords(metricLine);
 
             const components = metricLine.split(' ');
 
@@ -92,7 +98,7 @@ function processNewDataPacket(data) {
             const key = parseMetricKey(components[0]);
 
             if (!key) {
-            	console.log(`Couldn't understand key: "${components[0]}"`);
+                console.log(`Couldn't understand key: "${components[0]}"`);
                 continue;
             }
 
