@@ -60,7 +60,7 @@ function convertToMilliSeconds(timestampInSeconds) {
 function lookForKeywords(stringToCheck) {
     const lowerCasedString = stringToCheck.toLowerCase();
     if(lowerCasedString.indexOf('elasticsearch') > -1 || lowerCasedString.indexOf('topic') > -1) {
-        console.log(`KEYWORD MATCH: ${stringToCheck}`)
+        //console.log(`KEYWORD MATCH: ${stringToCheck}`)
     }
 }
 
@@ -71,6 +71,7 @@ const metricBuffer = new MetricBuffer({
 net.createServer(socket => {
     var buffer = "";
     socket.on('data', data => {
+        console.log(data);
         const metricLines = data.toString('utf8');
 
         buffer += metricLines;
@@ -85,13 +86,13 @@ net.createServer(socket => {
             const components = metricLine.split(' ');
 
             if(components.length < 3) {
-                return console.log(`Split metric line: ${metricLine}`);
+                return; //console.log(`Split metric line: ${metricLine}`);
             }
 
             const key = parseMetricKey(components[0]);
 
             if(!key) {
-                return console.log(`Couldn't understand key: "${components[0]}"`)
+                return; //console.log(`Couldn't understand key: "${components[0]}"`)
             }
 
             const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
