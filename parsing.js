@@ -91,6 +91,25 @@ function parseMetricKey(key) {
     return;
 }
 
+function parseMetricLine(metricLine) {
+    const components = metricLine.split(' ');
+
+    const key = parseMetricKey(components[0]);
+
+    if (!key) {
+        return;
+    }
+
+    const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
+
+    const metric = _.merge({
+        '@timestamp': moment(adjustedTime).format(),
+        value: components[1]
+    }, key);
+
+    return metric;
+}
+
 var buffer = "";
 
 function processNewDataPacket(data) {
@@ -104,26 +123,14 @@ function processNewDataPacket(data) {
             var metricLine = buffer.substring(0, lineEnd);
             buffer = buffer.substring(lineEnd + 1);
 
-            const components = metricLine.split(' ');
+            var metric = parseMetricLine(metricLine);
 
-            if (components.length < 3) {
-                console.log(`Split metric line: ${metricLine}`);
+            if (!metric) {
+                console.log(`Couldn't understand metric: "${metricLine}"`);
                 continue;
             }
 
-            const key = parseMetricKey(components[0]);
-
-            if (!key) {
-                console.log(`Couldn't understand key: "${components[0]}"`);
-                continue;
-            }
-
-            const adjustedTime = convertToMilliSeconds(parseInt(components[2], 10));
-
-            const metric = _.merge({
-                '@timestamp': moment(adjustedTime).format(),
-                value: components[1]
-            }, key);
+            //console.log(metric);
 
             // metricBuffer.push(metric);
         }
