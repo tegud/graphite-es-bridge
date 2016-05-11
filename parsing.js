@@ -11,8 +11,8 @@ function parseMetricKey(key) {
     const keyParts = key.split('.');
     if (lowerCasedkey.indexOf('elasticsearch') > -1) {
         return parse.elasticsearch(key, keyParts);
-    } else if (lowerCasedkey.indexOf('kafka') > -1) {
-        return parse.kafka(key, keyParts);
+    } else if (lowerCasedkey.indexOf('topic.lag') > -1) {
+        return parse.kafkaTopicLag(key, keyParts);
     } else if (keyParts.length == 5) {
         return {
             class: keyParts[0],

@@ -1,9 +1,9 @@
 var elasticsearch = require('./elasticsearch')();
-var kafka = require('./kafka')();
+var kafkaTopicLag = require('./kafkaTopicLag')();
 
 module.exports = function () {
     return {
         elasticsearch: elasticsearch.parse,
-        kafka: kafka.parse
+        kafkaTopicLag: kafkaTopicLag.parse
     }
 }
