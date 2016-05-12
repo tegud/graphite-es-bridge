@@ -5,7 +5,7 @@ const parsing = require('./parsing');
 const port = 12003;
 
 const metricBuffer = new MetricBuffer({
-    elasticsearch: { host: '10.44.72.61:9200' }
+    elasticsearch: { host: '10.44.72.62:9200' }
 });
 
 net.createServer(socket => {
