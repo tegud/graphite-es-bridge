@@ -8,6 +8,7 @@ function MetricBuffer(config) {
 
     function sendMetrics() {
         setTimeout(() => {
+            sendMetrics();
             const metricCount = metrics.length;
 
             if (!metricCount) {
@@ -26,7 +27,6 @@ function MetricBuffer(config) {
                 .catch(err => console.log(`Error storing to es: ${err}`));
 
             metrics = [];
-            sendMetrics();
         }, config.pushEvery || 1000);
     }
     sendMetrics();
