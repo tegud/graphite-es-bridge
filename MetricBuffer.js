@@ -6,26 +6,30 @@ function MetricBuffer(config) {
         host: config.elasticsearch.host
     });
 
-    setTimeout(() => {
-        const metricCount = metrics.length;
+    function sendMetrics() {
+        setTimeout(() => {
+            const metricCount = metrics.length;
 
-        if (!metricCount) {
-            return console.log('No metrics to log.');
-        }
+            if (!metricCount) {
+                return console.log('No metrics to log.');
+            }
 
-        client.bulk({
-                body: metrics.reduce((bulkData, metric) => {
-                    bulkData.push({ index: { _index: 'metrics-2016.05', _type: 'metric' } });
-                    bulkData.push(metric);
+            client.bulk({
+                    body: metrics.reduce((bulkData, metric) => {
+                        bulkData.push({ index: { _index: 'metrics-2016.05', _type: 'metric' } });
+                        bulkData.push(metric);
 
-                    return bulkData;
-                }, [])
-            })
-            .then(() => console.log(`${metricCount} metrics logged to ES`))
-            .catch(err => console.log(`Error storing to es: ${err}`));
+                        return bulkData;
+                    }, [])
+                })
+                .then(() => console.log(`${metricCount} metrics logged to ES`))
+                .catch(err => console.log(`Error storing to es: ${err}`));
 
-        metrics = [];
-    }, config.pushEvery || 1000);
+            metrics = [];
+            sendMetrics();
+        }, config.pushEvery || 1000);
+    }
+    sendMetrics();
 
     return {
         push: metric => metrics.push(metric)
