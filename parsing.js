@@ -39,7 +39,7 @@ function parseMetricLine(metricLine) {
 
     const metric = _.merge({
         '@timestamp': moment(adjustedTime).format(),
-        value: components[1]
+        value: parseFloat(components[1])
     }, key);
 
     return metric;
