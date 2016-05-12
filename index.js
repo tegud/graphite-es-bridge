@@ -10,7 +10,7 @@ const metricBuffer = new MetricBuffer({
 
 net.createServer(socket => {
     //socket.on('data', data => parsing.processNewDataPacket(data, metricData => metricBuffer.push(metricData)));
-    socket.on('data', data => parsing.processNewDataPacket(data, metricData => console.log(metricData)));
+    socket.on('data', data => parsing.processNewDataPacket(data, metricData => metricBuffer.push(metricData)));
 }).listen(port);
 
 console.log(`Listening on port ${port}`);
