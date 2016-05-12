@@ -9,7 +9,6 @@ const metricBuffer = new MetricBuffer({
 });
 
 net.createServer(socket => {
-    //socket.on('data', data => parsing.processNewDataPacket(data, metricData => metricBuffer.push(metricData)));
     socket.on('data', data => parsing.processNewDataPacket(data, metricData => metricBuffer.push(metricData)));
 }).listen(port);
 

@@ -63,7 +63,7 @@ function processNewDataPacket(data, callback) {
             console.log(e);
         }
         if (!metric) {
-            console.log(`Couldn't understand metric: "${metricLine}"`);
+            // console.dir(`Couldn't understand metric: "${metricLine}"`);
             continue;
         }
 
