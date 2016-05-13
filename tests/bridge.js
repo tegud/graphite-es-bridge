@@ -69,4 +69,22 @@ describe('Stores metrics to ES', function() {
 
         esServer.onRequest(() => done());
     });
+
+    it('matches custom parser', done => {
+        esServer = new FakeEsBulkServer();
+        bridge = new Bridge({
+            elasticsearch: { host: '127.0.0.1:9200' },
+            pushEvery: 20
+        });
+        client = new TestClient();
+
+        Promise.all([
+            esServer.start(),
+            bridge.start()
+        ])
+        .then(() => client.start())
+        .then(() => client.write('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server001.tlrg.org_production.thread_pool.flush.largest 0 1462974890\n'));
+
+        esServer.onRequest(() => done());
+    });
 });
