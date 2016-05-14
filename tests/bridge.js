@@ -22,7 +22,7 @@ function TestClient() {
     }
 }
 
-describe('Stores metrics to ES', function() {
+describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearch', function() {
     let esServer;
     let client;
     let bridge;
