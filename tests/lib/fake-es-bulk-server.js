@@ -11,7 +11,17 @@ module.exports = function FakeEsBulkServer() {
 		});
 
 		request.on('end', function() {
-            eventEmitter.emit('request', request);
+            const splitResponse = body.split('\n')
+                .reduce((filtered, current) => {
+                    if(current) {
+                        filtered.push(current);
+                    }
+
+                    return filtered;
+                }, [])
+                .map(line => JSON.parse(line));
+
+            eventEmitter.emit('request', splitResponse);
 
 			response.writeHead(200, { "Content-Type": "text/html" });
 			response.end(JSON.stringify({}));

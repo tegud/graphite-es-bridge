@@ -49,7 +49,10 @@ describe('Stores metrics to ES', function() {
         .then(() => client.start())
         .then(() => client.write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
 
-        esServer.onRequest(() => done());
+        esServer.onRequest(responseLines => {
+            responseLines[1].should.have.properties({ 'metric': 'ioreadb' });
+            done();
+        });
     });
 
     it('split metric', done => {
@@ -67,7 +70,10 @@ describe('Stores metrics to ES', function() {
         .then(() => client.start())
         .then(() => client.write(['servers.servername.process.', 'w3wpnum6.ioreadb 0 1462974890\n']));
 
-        esServer.onRequest(() => done());
+        esServer.onRequest(responseLines => {
+            responseLines[1].should.have.properties({ 'metric': 'ioreadb' });
+            done();
+        });
     });
 
     it('matches custom parser', done => {
@@ -85,6 +91,9 @@ describe('Stores metrics to ES', function() {
         .then(() => client.start())
         .then(() => client.write('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server001.tlrg.org_production.thread_pool.flush.largest 0 1462974890\n'));
 
-        esServer.onRequest(() => done());
+        esServer.onRequest(responseLines => {
+            responseLines[1].should.have.properties({ 'metric': 'thread_pool.flush.largest' });
+            done();
+        });
     });
 });
