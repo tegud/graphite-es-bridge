@@ -5,7 +5,7 @@ module.exports = function FakeEsBulkServer() {
     const eventEmitter = new EventEmitter();
 	const server = http.createServer(function(request, response) {
         let body = '';
-
+        
 		request.on('data', function(chunk) {
 			body += chunk;
 		});

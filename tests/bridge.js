@@ -1,7 +1,6 @@
 "use strict";
 
 const should = require('should');
-const _ = require('lodash');
 const net = require('net');
 const FakeEsBulkServer = require('./lib/fake-es-bulk-server');
 
