@@ -3,9 +3,11 @@
 const should = require('should');
 const moonstickParser = require('../../lib/parsers/moonstick');
 
+describe('moonstick metric parser', function() {
     it('returns nothing if the metric does not match', () =>
         should.not.exist(moonstickParser('invalid')));
 
+    describe('for matching stats', () => {
         it('sets server', () => moonstickParser('stats.servername001.moonstick.requests_handled')
             .should.be.have.properties({
                 server: 'servername001'
