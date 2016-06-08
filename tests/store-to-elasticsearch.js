@@ -19,12 +19,12 @@ describe('Stores metrics to ES', function() {
         done();
     });
 
-    it('sets index metrics-YYYY.MM by default', done => {
+    it('sets index metrics-YYYY.MM.DD by default', done => {
         esServer = new FakeEsBulkServer();
         const store = new Store({ host: '127.0.0.1:9200' });
 
         esServer.onRequest(responseLines => {
-            responseLines[0].index.should.have.properties({ '_index': 'metrics-2016.04' });
+            responseLines[0].index.should.have.properties({ '_index': 'metrics-2016.04.14' });
             done();
         });
 
@@ -35,10 +35,10 @@ describe('Stores metrics to ES', function() {
 
     it('sets index to specified format', done => {
         esServer = new FakeEsBulkServer();
-        const store = new Store({ host: '127.0.0.1:9200', index: 'metrics-${YYYY}.${MM}.${DD}' });
+        const store = new Store({ host: '127.0.0.1:9200', index: 'metrics-${YYYY}.${MM}' });
 
         esServer.onRequest(responseLines => {
-            responseLines[0].index.should.have.properties({ '_index': 'metrics-2016.04.14' });
+            responseLines[0].index.should.have.properties({ '_index': 'metrics-2016.04' });
             done();
         });
 
