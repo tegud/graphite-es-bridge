@@ -95,4 +95,27 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
             done();
         });
     });
+
+    describe('sets common properties', () => {
+        it('full_name', done => {
+            esServer = new FakeEsBulkServer();
+            bridge = new Bridge({
+                elasticsearch: { host: '127.0.0.1:9200' },
+                pushEvery: 20
+            });
+            client = new TestClient();
+
+            Promise.all([
+                esServer.start(),
+                bridge.start()
+            ])
+            .then(() => client.start())
+            .then(() => client.write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
+
+            esServer.onRequest(responseLines => {
+                responseLines[1].should.have.properties({ 'full_name': 'servers.servername.process.w3wpnum6.ioreadb' });
+                done();
+            });
+        });
+    });
 });

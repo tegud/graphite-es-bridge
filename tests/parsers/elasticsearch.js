@@ -7,6 +7,11 @@ describe('elasticsearch metric parser', function() {
     it('returns nothing if the metric does not match', () =>
         should.not.exist(elasticsearchParser('invalid')));
 
+    it('sets metric', () => elasticsearchParser('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server000.tlrg.org_production.fs.total.available_in_bytes')
+        .should.be.have.properties({
+            metric: 'fs.total.available_in_bytes'
+        }));
+        
     describe('for matching node stats', () => {
         it('sets class to elasticsearch', () => elasticsearchParser('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server000.tlrg.org_production.fs.total.available_in_bytes')
             .should.be.have.properties({

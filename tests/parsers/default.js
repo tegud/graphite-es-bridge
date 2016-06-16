@@ -7,7 +7,7 @@ describe('default parser', function() {
     it('returns nothing if the metric does not match', () =>
         should.not.exist(defaultParser('a.b.c.d')));
 
-    it('splits 5 part metrics', () => defaultParser('a.b.c.d.e').should.be.eql({
+    it('splits 5 part metrics', () => defaultParser('a.b.c.d.e').should.have.properties({
             class: 'a',
             host: 'b',
             group: 'c',
