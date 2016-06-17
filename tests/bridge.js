@@ -24,12 +24,12 @@ function TestClient() {
 
 describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearch', function() {
     let esServer;
-    let client;
+    let clients = [];
     let bridge;
 
-    afterEach(done => Promise.all([bridge.stop(), esServer.stop(), client.stop()]).then(() => {
+    afterEach(done => Promise.all([bridge.stop(), esServer.stop(), ...clients.map(client => client.stop())]).then(() => {
         esServer = undefined;
-        client = undefined;
+        clients = [];
         done();
     }));
 
@@ -39,17 +39,43 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
             elasticsearch: { host: '127.0.0.1:9200' },
             pushEvery: 20
         });
-        client = new TestClient();
+        clients.push(new TestClient());
 
         Promise.all([
             esServer.start(),
             bridge.start()
         ])
-        .then(() => client.start())
-        .then(() => client.write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
+        .then(() => clients[0].start())
+        .then(() => clients[0].write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
 
         esServer.onRequest(responseLines => {
             responseLines[1].should.have.properties({ 'metric': 'ioreadb' });
+            done();
+        });
+    });
+
+    it('handles multiple connections', done => {
+        esServer = new FakeEsBulkServer();
+        bridge = new Bridge({
+            elasticsearch: { host: '127.0.0.1:9200' },
+            pushEvery: 20
+        });
+        clients.push(new TestClient());
+        clients.push(new TestClient());
+
+        Promise.all([
+            esServer.start(),
+            bridge.start()
+        ])
+        .then(Promise.all(clients.map(client => client.start())))
+        .then(() => {
+            clients[0].write('servers.servername.process.w3wpnum6.metric1 0 1462974890\n');
+            clients[1].write('servers.servername.process.w3wpnum6.metric2 0 1462974890\n');
+        });
+
+        esServer.onRequest(responseLines => {
+            responseLines[1].should.have.properties({ 'metric': 'metric1' });
+            responseLines[3].should.have.properties({ 'metric': 'metric2' });
             done();
         });
     });
@@ -60,14 +86,15 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
             elasticsearch: { host: '127.0.0.1:9200' },
             pushEvery: 20
         });
-        client = new TestClient();
+
+        clients.push(new TestClient());
 
         Promise.all([
             esServer.start(),
             bridge.start()
         ])
-        .then(() => client.start())
-        .then(() => client.write(['servers.servername.process.', 'w3wpnum6.ioreadb 0 1462974890\n']));
+        .then(() => clients[0].start())
+        .then(() => clients[0].write(['servers.servername.process.', 'w3wpnum6.ioreadb 0 1462974890\n']));
 
         esServer.onRequest(responseLines => {
             responseLines[1].should.have.properties({ 'metric': 'ioreadb' });
@@ -81,14 +108,14 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
             elasticsearch: { host: '127.0.0.1:9200' },
             pushEvery: 20
         });
-        client = new TestClient();
+        clients.push(new TestClient());
 
         Promise.all([
             esServer.start(),
             bridge.start()
         ])
-        .then(() => client.start())
-        .then(() => client.write('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server001.tlrg.org_production.thread_pool.flush.largest 0 1462974890\n'));
+        .then(() => clients[0].start())
+        .then(() => clients[0].write('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server001.tlrg.org_production.thread_pool.flush.largest 0 1462974890\n'));
 
         esServer.onRequest(responseLines => {
             responseLines[1].should.have.properties({ 'metric': 'thread_pool.flush.largest' });
@@ -103,14 +130,14 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
             });
-            client = new TestClient();
+            clients.push(new TestClient());
 
             Promise.all([
                 esServer.start(),
                 bridge.start()
             ])
-            .then(() => client.start())
-            .then(() => client.write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
+            .then(() => clients[0].start())
+            .then(() => clients[0].write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
 
             esServer.onRequest(responseLines => {
                 responseLines[1].should.have.properties({ 'full_name': 'servers.servername.process.w3wpnum6.ioreadb' });
