@@ -6,11 +6,11 @@ const FakeEsBulkServer = require('./lib/fake-es-bulk-server');
 
 const Bridge = require('../lib/server');
 
-function TestClient() {
+function TestClient(ip = '127.0.0.1') {
     const client = new net.Socket();
 
     return {
-        start: () => new Promise(resolve => client.connect(12003, '127.0.0.1', () => resolve())),
+        start: () => new Promise(resolve => client.connect(12003, ip, () => resolve())),
         stop: () => client.end(),
         write: message => {
             if(typeof message === 'string') {
@@ -76,6 +76,34 @@ describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearc
         esServer.onRequest(responseLines => {
             responseLines[1].should.have.properties({ 'metric': 'metric1' });
             responseLines[3].should.have.properties({ 'metric': 'metric2' });
+            done();
+        });
+    });
+
+    it('handles multiple connections with split metrics', done => {
+        esServer = new FakeEsBulkServer();
+        bridge = new Bridge({
+            elasticsearch: { host: '127.0.0.1:9200' },
+            pushEvery: 150
+        });
+        clients.push(new TestClient());
+        clients.push(new TestClient());
+
+        Promise.all([
+            esServer.start(),
+            bridge.start()
+        ])
+        .then(Promise.all(clients.map(client => client.start())))
+        .then(() => {
+            clients[0].write('servers.servername.process');
+            clients[1].write('servers.servername.process.w3wpnum6.metric2 0 1462974890\n');
+            setTimeout(() => clients[0].write('.w3wpnum6.metric1 0 1462974890\n'), 50);
+        });
+
+        esServer.onRequest(responseLines => {
+            console.log(responseLines);
+            responseLines[1].should.have.properties({ 'metric': 'metric2' });
+            responseLines[3].should.have.properties({ 'metric': 'metric1' });
             done();
         });
     });
