@@ -12,9 +12,9 @@ before_script:
   - npm install -g grunt-cli
 after_script:
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-  - docker build -t tlrg/graphite-es-bridge:latest -t tlrg/graphite-es-bridge:${TRAVIS_BUILD_NUMBER} .
-  - docker push tlrg/graphite-es-bridge:latest
+  - docker build -t tlrg/graphite-es-bridge:${TRAVIS_BUILD_NUMBER} -t tlrg/graphite-es-bridge:latest  .
   - docker push tlrg/graphite-es-bridge:${TRAVIS_BUILD_NUMBER}
+  - docker push tlrg/graphite-es-bridge:latest
 notifications:
   webhooks:
     urls:
