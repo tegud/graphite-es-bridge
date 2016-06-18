@@ -1,4 +1,4 @@
-FROM node:6.1.0
+FROM node:6.2.2
 EXPOSE 12003
 RUN mkdir /opt/graphite-es-bridge
 WORKDIR /opt/graphite-es-bridge
