@@ -1,5 +1,3 @@
-"use strict";
-
 const should = require('should');
 const TestClient = require('./lib/test-tcp-client');
 const FakeEsBulkServer = require('./lib/fake-es-bulk-server');
