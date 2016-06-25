@@ -1,26 +1,10 @@
 "use strict";
 
 const should = require('should');
-const net = require('net');
+const TestClient = require('./lib/test-tcp-client');
 const FakeEsBulkServer = require('./lib/fake-es-bulk-server');
 
 const Bridge = require('../lib/server');
-
-function TestClient(ip = '127.0.0.1', port = 12003) {
-    const client = new net.Socket();
-
-    return {
-        start: () => new Promise(resolve => client.connect(port, ip, () => resolve())),
-        stop: () => client.end(),
-        write: message => {
-            if(typeof message === 'string') {
-                return client.write(message);
-            }
-
-            message.forEach(part => client.write(part));
-        }
-    }
-}
 
 describe('Graphite to ES Bridge', function() {
     let esServer;
@@ -38,21 +22,25 @@ describe('Graphite to ES Bridge', function() {
         }
     }));
 
+    function startBridgeWithClients(bridgeConfig, ...testClients) {
+        esServer = new FakeEsBulkServer();
+        bridge = new Bridge(bridgeConfig);
+
+        clients = [...testClients];
+
+        return Promise.all([
+            esServer.start(),
+            bridge.start()
+        ]).then(Promise.all(clients.map(client => client.start())))
+    }
+
     describe('Graphite to ES listens on TCP Port 12003 and publishes to Elasticsearch', () => {
         it('simple metric in one packet', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
-            });
-            clients.push(new TestClient());
-
-            Promise.all([
-                esServer.start(),
-                bridge.start()
-            ])
-            .then(() => clients[0].start())
-            .then(() => clients[0].write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
+            }, new TestClient())
+                .then(() => clients[0].write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
 
             esServer.onRequest(responseLines => {
                 responseLines[1].should.have.properties({ 'metric': 'ioreadb' });
@@ -61,19 +49,10 @@ describe('Graphite to ES Bridge', function() {
         });
 
         it('handles multiple connections', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
-            });
-            clients.push(new TestClient());
-            clients.push(new TestClient());
-
-            Promise.all([
-                esServer.start(),
-                bridge.start()
-            ])
-            .then(Promise.all(clients.map(client => client.start())))
+            }, new TestClient(), new TestClient())
             .then(() => {
                 clients[0].write('servers.servername.process.w3wpnum6.metric1 0 1462974890\n');
                 clients[1].write('servers.servername.process.w3wpnum6.metric2 0 1462974890\n');
@@ -87,19 +66,10 @@ describe('Graphite to ES Bridge', function() {
         });
 
         it('handles multiple connections with split metrics', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 150
-            });
-            clients.push(new TestClient());
-            clients.push(new TestClient());
-
-            Promise.all([
-                esServer.start(),
-                bridge.start()
-            ])
-            .then(Promise.all(clients.map(client => client.start())))
+            }, new TestClient(), new TestClient())
             .then(() => {
                 clients[0].write('servers.servername.process');
                 clients[1].write('servers.servername.process.w3wpnum6.metric2 0 1462974890\n');
@@ -115,19 +85,10 @@ describe('Graphite to ES Bridge', function() {
         });
 
         it('split metric', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
-            });
-
-            clients.push(new TestClient());
-
-            Promise.all([
-                esServer.start(),
-                bridge.start()
-            ])
-            .then(() => clients[0].start())
+            }, new TestClient())
             .then(() => clients[0].write(['servers.servername.process.', 'w3wpnum6.ioreadb 0 1462974890\n']));
 
             esServer.onRequest(responseLines => {
@@ -137,18 +98,10 @@ describe('Graphite to ES Bridge', function() {
         });
 
         it('matches custom parser', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
-            });
-            clients.push(new TestClient());
-
-            Promise.all([
-                esServer.start(),
-                bridge.start()
-            ])
-            .then(() => clients[0].start())
+            }, new TestClient())
             .then(() => clients[0].write('stats.gauges.elasticsearch.search_elasticsearch_cluster_production.node.search_elasticsearch_server001.tlrg.org_production.thread_pool.flush.largest 0 1462974890\n'));
 
             esServer.onRequest(responseLines => {
@@ -159,18 +112,10 @@ describe('Graphite to ES Bridge', function() {
 
         describe('sets common properties', () => {
             it('full_name', done => {
-                esServer = new FakeEsBulkServer();
-                bridge = new Bridge({
+                startBridgeWithClients({
                     elasticsearch: { host: '127.0.0.1:9200' },
                     pushEvery: 20
-                });
-                clients.push(new TestClient());
-
-                Promise.all([
-                    esServer.start(),
-                    bridge.start()
-                ])
-                .then(() => clients[0].start())
+                }, new TestClient())
                 .then(() => clients[0].write('servers.servername.process.w3wpnum6.ioreadb 0 1462974890\n'));
 
                 esServer.onRequest(responseLines => {
@@ -183,20 +128,11 @@ describe('Graphite to ES Bridge', function() {
 
     describe('Graphite to ES listens on multiple port bindings', () => {
         it('simple metric in one packet', done => {
-            esServer = new FakeEsBulkServer();
-            bridge = new Bridge({
+            startBridgeWithClients({
                 port: [12003, 2003],
                 elasticsearch: { host: '127.0.0.1:9200' },
                 pushEvery: 20
-            });
-            clients.push(new TestClient('127.0.0.1', 12003));
-            clients.push(new TestClient('127.0.0.1', 2003));
-
-            Promise.all([
-                    esServer.start(),
-                    bridge.start()
-                ])
-                .then(Promise.all(clients.map(client => client.start())))
+            }, new TestClient('127.0.0.1', 12003), new TestClient('127.0.0.1', 2003))
                 .then(() => clients[0].write('servers.servername.process.w3wpnum6.metric1 0 1462974890\n'))
                 .then(() => new Promise(resolve => setTimeout(() => resolve(), 5)))
                 .then(() => clients[1].write('servers.servername.process.w3wpnum6.metric2 0 1462974890\n'));

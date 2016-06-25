@@ -3,26 +3,10 @@
 const http = require('http');
 const should = require('should');
 const _ = require('lodash');
-const net = require('net');
 const FakeEsBulkServer = require('./lib/fake-es-bulk-server');
+const TestClient = require('./lib/test-tcp-client');
 
 const Bridge = require('../lib/server');
-
-function TestClient(ip = '127.0.0.1') {
-    const client = new net.Socket();
-
-    return {
-        start: () => new Promise(resolve => client.connect(12003, ip, () => resolve())),
-        stop: () => client.end(),
-        write: message => {
-            if(typeof message === 'string') {
-                return client.write(message);
-            }
-
-            message.forEach(part => client.write(part));
-        }
-    }
-}
 
 function makeRequest(requestOptions, body) {
     return new Promise(resolve => {
@@ -83,6 +67,32 @@ describe('responds to http requests', function() {
             }))
             .then(response => new Promise(resolve => resolve(JSON.parse(response.data).connections)))
             .should.eventually.eql([ { from: '::ffff:127.0.0.1', to: 12003 } ]);
+        });
+
+        it('contains active connections on multiple ports', () => {
+            esServer = new FakeEsBulkServer();
+            bridge = new Bridge({
+                port: [12003, 2003],
+                elasticsearch: { host: '127.0.0.1:9200' },
+                pushEvery: 20
+            });
+            clients.push(new TestClient('127.0.0.1', 12003));
+            clients.push(new TestClient('127.0.0.1', 2003));
+
+            return Promise.all([
+                esServer.start(),
+                bridge.start()
+            ])
+            .then(Promise.all(clients.map(client => client.start())))
+            .then(() => makeRequest({
+                path: '/status',
+                method: 'GET'
+            }))
+            .then(response => new Promise(resolve => resolve(JSON.parse(response.data).connections)))
+            .should.eventually.eql([
+                { from: '::ffff:127.0.0.1', to: 12003 },
+                { from: '::ffff:127.0.0.1', to: 2003 }
+            ]);
         });
 
         it('removes disconnected connections', () => {
