@@ -33,6 +33,21 @@ describe('Stores metrics to ES', function() {
             .then(() => store.store([{}]));
     });
 
+    it('sets index for current date, not first date encountered', done => {
+        esServer = new FakeEsBulkServer();
+        const store = new Store({ host: '127.0.0.1:9200' });
+
+        esServer.onRequest(responseLines => {
+            responseLines[0].index.should.have.properties({ '_index': 'metrics-2016.04.15' });
+            done();
+        });
+
+        fakeMoment.setDate('2016-04-14T00:00:00')
+            .then(() => esServer.start())
+            .then(() => fakeMoment.setDate('2016-04-15T00:00:00'))
+            .then(() => store.store([{}]));
+    });
+
     it('sets index to specified format', done => {
         esServer = new FakeEsBulkServer();
         const store = new Store({ host: '127.0.0.1:9200', index: 'metrics-${YYYY}.${MM}' });
