@@ -140,8 +140,8 @@ describe('Graphite to ES Bridge', function() {
             esServer.onRequest(responseLines => {
                 allResponses = allResponses.concat(responseLines);
                 if(allResponses.length > 3) {
-                    responseLines[1].should.have.properties({ 'metric': 'metric1' });
-                    responseLines[3].should.have.properties({ 'metric': 'metric2' });
+                    allResponses[1].should.have.properties({ 'metric': 'metric1' });
+                    allResponses[3].should.have.properties({ 'metric': 'metric2' });
 
                     done();
                 }
